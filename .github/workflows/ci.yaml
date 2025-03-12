@@ -1,0 +1,122 @@
+name: Feature ci workflow
+
+on:
+  push:
+    branches:
+      - feature/*
+
+jobs:
+  lint:
+    name: Run linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run linter
+        run: npm run lint
+
+  test:
+    name: Unit testing
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run linter
+        run: npm run test
+
+  coverage:
+    name: Test coverage
+    runs-on: ubuntu-latest
+    needs:
+      - test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run coverage
+        run: npm run coverage
+
+  dockerfile-lint:
+    name: Dockerfile Check
+    runs-on: ubuntu-latest
+    needs: coverage
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Hadolint
+        run: sudo curl -L "https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64" -o /usr/local/bin/hadolint && sudo chmod +x /usr/local/bin/hadolint
+
+      - name: Lint Dockerfile
+        run: hadolint Dockerfile
+
+  docker-build-check:
+    name: Test Docker Image Build
+    runs-on: ubuntu-latest
+    needs: dockerfile-lint
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: docker build -t simple-node-app .
+
+  create-pr:
+    name: Create PR to Development
+    runs-on: ubuntu-latest
+    needs: docker-build-check
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create Pull Request via GitHub CLI
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e  # Stop execution if any command fails
+          gh pr create \
+            --base development \
+            --head ${{ github.ref_name }} \
+            --title "Feature Update - ${{ github.ref_name }}" \
+            --body "This is an automated pull request to development." \
