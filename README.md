@@ -9,12 +9,9 @@ Prerequisites:
 
 ```shell
 # clone the repo and install dependencies
-$ git clone git@github.com:joshuarwynn/simple-node-app.git
-$ cd simple-node-app && npm install
+$ git clone git@github.com:joshuarwynn/simple-node-app-again.git
+$ cd simple-node-app-again && npm install
 ```
-
-- Create a Twitter account and app ([create a Twitter app here](https://apps.twitter.com/)).
-- Once your Twitter app is created, you'll need to grab the `Consumer Key (API Key)`, `Consumer Secret (API Secret)`, `Access Token`, and `Access Token Secret` from the "Keys and Access Tokens" tab in your Twitter app portal. Place these values into the respective properties in the `twitter` object within `src/config/default.json`. You can leave `src/config/test.json` as is.
 - Start the Node.js app by executing the following:
 
 ```shell
