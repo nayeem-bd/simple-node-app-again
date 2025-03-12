@@ -77,14 +77,21 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set Up Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Merge to dev
+      - name: Checkout dev branch
         run: |
-          git checkout dev
-          git merge --no-ff feature/${{ github.ref_name }} -m "Merge feature branch into dev"
-          git push origin dev
+          git checkout dev || git checkout -b dev 
+
+      - name: Merge to dev
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_KEY }}
+        run: |
+          git merge --no-ff ${{ github.ref_name }} -m "Merge $FEATURE_BRANCH into dev"
+          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git dev
